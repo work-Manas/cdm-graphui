@@ -56,13 +56,6 @@ export const Z_LAYERS = {
 export const TICK_MS = 1500;
 export const HISTORY_LEN = 60;
 
-export const PROV2_SIMPLEICONS: Record<ProviderId, string> = {
-  aws: "amazonaws",
-  azure: "microsoftazure",
-  gcp: "googlecloud",
-  nvidia: "nvidia",
-};
-
 export const STATUS_COLORS = {
   healthy: "#10b981",
   degraded: "#f59e0b",
@@ -70,9 +63,6 @@ export const STATUS_COLORS = {
   idle: "#71717a",
   active: "#10b981",
 } as const;
-
-export const PROVIDER_LOGO = (id: string, color = "ffffff") =>
-  `https://cdn.simpleicons.org/${id}/${color}`;
 
 export function cn(...inputs: (string | false | null | undefined)[]) {
   return inputs.filter(Boolean).join(" ");

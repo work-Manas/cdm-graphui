@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { memo } from "react";
 import { PROVIDERS } from "@/lib/constants";
+import { ProviderLogo } from "@/components/icons/ProviderLogo";
 import { useMorphStore } from "@/lib/morphStore";
 import type { ProviderGroupNode as ProviderGroupNodeType } from "@/types/architecture";
 
@@ -36,13 +37,7 @@ function ProviderGroupComponent({ id, data }: Props) {
         }}
       />
       <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
-        <img
-          src={`https://cdn.simpleicons.org/${data.provider}/${p.color.replace("#", "")}`}
-          width={14}
-          height={14}
-          alt={`${data.label} logo`}
-          style={{ filter: "saturate(1.2)" }}
-        />
+        <ProviderLogo provider={data.provider} size={14} />
         <span
           className="text-[11px] font-medium uppercase tracking-wider"
           style={{ color: p.color }}

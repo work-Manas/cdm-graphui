@@ -1,6 +1,7 @@
 "use client";
 
 import { PROVIDERS } from "@/lib/constants";
+import { ProviderLogo } from "@/components/icons/ProviderLogo";
 import type { Architecture, ProviderId } from "@/types/architecture";
 
 export function LegendPanel({ arch }: { arch: Architecture }) {
@@ -23,13 +24,7 @@ export function LegendPanel({ arch }: { arch: Architecture }) {
             const count = arch.nodes.filter((n) => n.data.provider === id).length;
             return (
               <div key={id} className="flex items-center gap-2">
-                <img
-                  src={`https://cdn.simpleicons.org/${id === "aws" ? "amazonaws" : id === "azure" ? "microsoftazure" : id === "gcp" ? "googlecloud" : "nvidia"}/${p.color.replace("#", "")}`}
-                  width={12}
-                  height={12}
-                  alt={`${p.label} logo`}
-                  style={{ filter: "saturate(1.2)" }}
-                />
+                <ProviderLogo provider={id} size={12} />
                 <span className="text-[10.5px] font-medium text-zinc-300">{p.label}</span>
                 <span
                   className="text-[9px] text-zinc-600 tnum"
