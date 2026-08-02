@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { ArchitectureView } from "@/components/canvas/ArchitectureView";
+import { AppBar } from "@/components/chrome/AppBar";
+import { LegendPanel } from "@/components/chrome/LegendPanel";
+import { MetaPanel } from "@/components/chrome/MetaPanel";
+import { DetailPanel } from "@/components/detail/DetailPanel";
 import { ARCH_INDEX, ARCH_ORDER } from "@/data/architectures";
 import { useLiveStore } from "@/lib/store";
 import type { Architecture } from "@/types/architecture";
@@ -25,14 +29,24 @@ export default function Home() {
   if (!arch) {
     return (
       <main className="flex h-full w-full items-center justify-center text-zinc-500">
-        <div className="font-mono text-xs">{hydrated ? "Loading architecture..." : "Initializing live engine..."}</div>
+        <div className="font-mono text-xs">
+          {hydrated ? "Loading architecture..." : "Initializing live engine..."}
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="relative h-full w-full">
-      <ArchitectureView arch={arch} />
-    </main>
+    <div className="flex h-full flex-col">
+      <AppBar />
+      <main className="relative flex flex-1 overflow-hidden">
+        <div className="relative flex-1 overflow-hidden">
+          <ArchitectureView arch={arch} />
+          <MetaPanel arch={arch} />
+          <LegendPanel arch={arch} />
+        </div>
+        <DetailPanel />
+      </main>
+    </div>
   );
 }
