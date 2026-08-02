@@ -1,10 +1,12 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import { motion } from "motion/react";
 import { memo } from "react";
 import { PROVIDERS } from "@/lib/constants";
 import { getGlyph } from "@/lib/iconRegistry";
 import { useLiveStore } from "@/lib/store";
+import { useMorphStore } from "@/lib/morphStore";
 import { fmtMoney } from "@/lib/rng";
 import type { ServiceNode as ServiceNodeType } from "@/types/architecture";
 
@@ -38,11 +40,7 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
     .join(" ");
   const areaPath = `M0,${h} L${points.split(" ").map((p) => p.replace(",", " ")).join(" L")} L${w},${h} Z`;
   return (
-    <svg
-      viewBox={`0 0 ${w} ${h}`}
-      preserveAspectRatio="none"
-      className="h-3 w-full"
-    >
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-3 w-full">
       <path d={areaPath} fill={color} opacity={0.16} />
       <polyline
         points={points}
@@ -77,6 +75,22 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
   const selectNode = useLiveStore((s) => s.selectNode);
   const liveState = live ?? null;
 
+  const entering = useMorphStore((s) => s.enteringIds.has(id));
+  const exiting = useMorphStore((s) => s.exitingIds.has(id));
+  const morphAt = useMorphStore((s) => s.morphAt);
+
+  const variants = {
+    initial: (isEntering: boolean) => ({
+      opacity: isEntering ? 0 : 1,
+      scale: isEntering ? 0.92 : 1,
+    }),
+    animate: {
+      opacity: exiting ? 0 : 1,
+      scale: exiting ? 0.85 : 1,
+    },
+    exit: { opacity: 0, scale: 0.85 },
+  };
+
   const p = PROVIDERS[data.provider];
   const Glyph = getGlyph(data.iconKey);
 
@@ -105,12 +119,17 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
         position={Position.Right}
         style={{ background: p.color, width: 8, height: 8, border: "none", opacity: 0.9 }}
       />
-      <div
+      <motion.div
+        key={morphAt ? `${id}-${morphAt}` : id}
+        custom={entering}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={variants}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         onClick={onClick}
         className="group relative cursor-pointer select-none"
-        style={{
-          width: 192,
-        }}
+        style={{ width: 192, pointerEvents: exiting ? "none" : "auto" }}
       >
         <div
           className="relative overflow-hidden border text-left transition-all duration-200"
@@ -132,10 +151,7 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
             <div className="flex items-center gap-2">
               <div
                 className="flex h-6 w-6 shrink-0 items-center justify-center rounded"
-                style={{
-                  background: `${p.color}1a`,
-                  color: p.color,
-                }}
+                style={{ background: `${p.color}1a`, color: p.color }}
               >
                 <Glyph size={13} weight="bold" />
               </div>
@@ -191,7 +207,7 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }
