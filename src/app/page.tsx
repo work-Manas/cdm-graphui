@@ -8,6 +8,7 @@ import { MetaPanel } from "@/components/chrome/MetaPanel";
 import { DetailPanel } from "@/components/detail/DetailPanel";
 import { ARCH_INDEX, ARCH_ORDER } from "@/data/architectures";
 import { useLiveStore } from "@/lib/store";
+import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 import type { Architecture } from "@/types/architecture";
 
 export default function Home() {
@@ -15,6 +16,8 @@ export default function Home() {
   const start = useLiveStore((s) => s.start);
   const archId = useLiveStore((s) => s.archId);
   const [hydrated, setHydrated] = useState(false);
+
+  useKeyboardShortcuts();
 
   useEffect(() => {
     if (!hydrated && ARCH_ORDER.length) {

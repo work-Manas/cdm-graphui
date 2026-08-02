@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { Architecture, FlowEdge, ServiceNode, ServiceStatus } from "@/types/architecture";
 import { chance, jitter, mulberry32, pick, type RNG } from "@/lib/rng";
+import { useMorphStore } from "@/lib/morphStore";
 
 const TICK_MS = 1500;
 const HISTORY_LEN = 60;
@@ -97,6 +98,44 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
   rng: mulberry32(0xc0ffee),
 
   setArch: (arch) => {
+    const prev = get().arch;
+    const prevKeys = new Set<string>();
+    const nextKeys = new Set<string>();
+    if (prev) {
+      for (const n of prev.nodes) prevKeys.add(n.data.morphKey);
+    }
+    for (const n of arch.nodes) nextKeys.add(n.data.morphKey);
+
+    const enteringKeys = new Set<string>();
+    const exitingKeys = new Set<string>();
+    for (const k of nextKeys) if (!prevKeys.has(k)) enteringKeys.add(k);
+    for (const k of prevKeys) if (!nextKeys.has(k)) exitingKeys.add(k);
+
+    if (prev) {
+      // Compute provider and region group entering/exiting sets separately
+      // (those keys are the group node ids, which are stable per-arch by construction.)
+      const prevGroupKeys = new Set<string>();
+      const nextGroupKeys = new Set<string>();
+      for (const g of prev.providerGroups) prevGroupKeys.add(g.id);
+      for (const g of prev.providerGroups) prevGroupKeys.add(g.id);
+      for (const g of prev.regionGroups) prevGroupKeys.add(g.id);
+      for (const g of arch.providerGroups) nextGroupKeys.add(g.id);
+      for (const g of arch.regionGroups) nextGroupKeys.add(g.id);
+      for (const k of nextGroupKeys) if (!prevGroupKeys.has(k)) enteringKeys.add(k);
+      for (const k of prevGroupKeys) if (!nextGroupKeys.has(k)) exitingKeys.add(k);
+    } else {
+      for (const n of arch.nodes) enteringKeys.add(n.data.morphKey);
+      for (const g of arch.providerGroups) enteringKeys.add(g.id);
+      for (const g of arch.regionGroups) enteringKeys.add(g.id);
+    }
+
+    useMorphStore.getState().beginMorph(
+      prev?.id ?? null,
+      Array.from(enteringKeys),
+      Array.from(exitingKeys),
+    );
+    window.setTimeout(() => useMorphStore.getState().finishMorph(), 700);
+
     const rng = mulberry32(0xc0ffee);
     const nodeStates: Record<string, NodeLiveState> = {};
     const edgeStates: Record<string, EdgeLiveState> = {};

@@ -2,6 +2,7 @@
 
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
 import { memo, useState } from "react";
+import { useReducedMotion } from "motion/react";
 import { STATUS_COLORS } from "@/lib/constants";
 
 const STATUS_TO_COLOR: Record<string, string> = {
@@ -22,6 +23,7 @@ type FlowEdgeProps = Omit<EdgeProps, "data"> & { data?: FlowEdgeData };
 
 function FlowEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, data }: FlowEdgeProps) {
   const [hovered, setHovered] = useState(false);
+  const reduceMotion = useReducedMotion() ?? false;
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -37,11 +39,14 @@ function FlowEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePosit
 
   const trackWidth = hovered ? 5 : 3;
   const flowWidth = hovered ? 2.5 : 1.5;
-  const dashAnim = status === "active"
+  const dashAnim = reduceMotion
+    ? "none"
+    : status === "active"
     ? "flow-dash 1s linear infinite"
     : status === "degraded"
     ? "flow-dash 3s ease-in-out infinite"
     : "none";
+  const strokeDasharray = reduceMotion && status !== "idle" ? "0" : "6 6";
 
   const onEnter = () => setHovered(true);
   const onLeave = () => setHovered(false);
@@ -67,7 +72,7 @@ function FlowEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePosit
           stroke={color}
           strokeWidth={flowWidth}
           strokeOpacity={dimmed ? 0.35 : hovered ? 1 : 0.85}
-          strokeDasharray="6 6"
+          strokeDasharray={strokeDasharray}
           style={{
             animation: dashAnim,
             strokeLinecap: "round",

@@ -75,8 +75,8 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
   const selectNode = useLiveStore((s) => s.selectNode);
   const liveState = live ?? null;
 
-  const entering = useMorphStore((s) => s.enteringIds.has(id));
-  const exiting = useMorphStore((s) => s.exitingIds.has(id));
+  const entering = useMorphStore((s) => s.enteringKeys.has(data.morphKey));
+  const exiting = useMorphStore((s) => s.exitingKeys.has(data.morphKey));
   const morphAt = useMorphStore((s) => s.morphAt);
 
   const variants = {
@@ -120,13 +120,13 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
         style={{ background: p.color, width: 8, height: 8, border: "none", opacity: 0.9 }}
       />
       <motion.div
-        key={morphAt ? `${id}-${morphAt}` : id}
+        key={morphAt ? `${data.morphKey}-${morphAt}` : data.morphKey}
         custom={entering}
         initial="initial"
         animate="animate"
         exit="exit"
         variants={variants}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         onClick={onClick}
         className="group relative cursor-pointer select-none"
         style={{ width: 192, pointerEvents: exiting ? "none" : "auto" }}

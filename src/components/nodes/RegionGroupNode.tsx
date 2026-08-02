@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "motion/react";
 import { memo } from "react";
 import { PROVIDERS } from "@/lib/constants";
+import { useMorphStore } from "@/lib/morphStore";
 import type { RegionGroupNode as RegionGroupNodeType } from "@/types/architecture";
 
 type Props = {
@@ -9,10 +11,17 @@ type Props = {
   data: RegionGroupNodeType["data"];
 };
 
-function RegionGroupComponent({ data }: Props) {
+function RegionGroupComponent({ id, data }: Props) {
   const p = PROVIDERS[data.provider];
+  const entering = useMorphStore((s) => s.enteringKeys.has(id));
+  const morphAt = useMorphStore((s) => s.morphAt);
+
   return (
-    <div
+    <motion.div
+      key={morphAt ? `${id}-${morphAt}` : id}
+      initial={{ opacity: entering ? 0 : 1 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="relative h-full w-full rounded-lg border border-dashed"
       style={{
         borderColor: `${p.color}33`,
@@ -28,10 +37,7 @@ function RegionGroupComponent({ data }: Props) {
         </span>
         <span
           className="rounded px-1 py-px text-[8px] uppercase tracking-wider text-zinc-400"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            fontFamily: "var(--font-mono)",
-          }}
+          style={{ background: "rgba(255,255,255,0.05)", fontFamily: "var(--font-mono)" }}
         >
           {data.azCount} AZs
         </span>
@@ -42,7 +48,7 @@ function RegionGroupComponent({ data }: Props) {
       >
         {data.serviceCount} svcs
       </span>
-    </div>
+    </motion.div>
   );
 }
 

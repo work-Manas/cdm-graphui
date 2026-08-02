@@ -1,8 +1,9 @@
 "use client";
 
-import { memo, type ReactNode } from "react";
+import { motion } from "motion/react";
+import { memo } from "react";
 import { PROVIDERS } from "@/lib/constants";
-import { useLiveStore } from "@/lib/store";
+import { useMorphStore } from "@/lib/morphStore";
 import type { ProviderGroupNode as ProviderGroupNodeType } from "@/types/architecture";
 
 type Props = {
@@ -10,18 +11,25 @@ type Props = {
   data: ProviderGroupNodeType["data"];
 };
 
-function ProviderGroupComponent({ data }: Props) {
+function ProviderGroupComponent({ id, data }: Props) {
   const p = PROVIDERS[data.provider];
+  const entering = useMorphStore((s) => s.enteringKeys.has(id));
+  const morphAt = useMorphStore((s) => s.morphAt);
+
   return (
-    <div
-      className="relative h-full w-full rounded-xl border border-white/10"
+    <motion.div
+      key={morphAt ? `${id}-${morphAt}` : id}
+      initial={{ opacity: entering ? 0 : 1 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative h-full w-full rounded-xl border"
       style={{
         background: `${p.color}0a`,
         borderColor: `${p.color}22`,
       }}
     >
       <div
-        className="absolute inset-0 opacity-[0.04] rounded-xl"
+        className="absolute inset-0 rounded-xl opacity-[0.04]"
         style={{
           backgroundImage: `linear-gradient(${p.color}55 1px, transparent 1px), linear-gradient(90deg, ${p.color}55 1px, transparent 1px)`,
           backgroundSize: "20px 20px",
@@ -47,10 +55,10 @@ function ProviderGroupComponent({ data }: Props) {
         style={{ fontFamily: "var(--font-mono)" }}
       >
         <span>{data.serviceCount} services</span>
-        <span className="text-zinc-700">{`//`}</span>
+        <span className="text-zinc-700">{"//"}</span>
         <span>{data.regionCount} regions</span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
