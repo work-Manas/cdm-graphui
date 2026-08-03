@@ -8,7 +8,7 @@ import type {
   ServiceNode,
 } from "@/types/architecture";
 
-const NODE_WIDTH = 200;
+const NODE_WIDTH = 192;
 const NODE_HEIGHT = 132;
 
 const GROUP_PAD_X = 32;
@@ -27,6 +27,7 @@ type RegionGroup = {
   services: ServiceNode[];
   width: number;
   height: number;
+  layoutWidth: number;
   offsetX: number;
   offsetY: number;
 };
@@ -70,6 +71,7 @@ export function computeLayout(
         services: [],
         width: 0,
         height: 0,
+        layoutWidth: 0,
         offsetX: 0,
         offsetY: 0,
       };
@@ -78,9 +80,8 @@ export function computeLayout(
     rg.services.push(svc);
   }
 
-  // Compute per-region internal layout (dagre, LR)
+  // Compute per-region internal layout (dagre, TB)
   const nodesPerRegion = new Map<string, { id: string; x: number; y: number }[]>();
-  const maxColPerRegion = new Map<string, number>();
 
   for (const [_, pg] of providersMap) {
     for (const rg of pg.regions) {
@@ -113,6 +114,7 @@ export function computeLayout(
 
       const maxX = Math.max(...coords.map((c) => c.x + NODE_WIDTH));
       const maxY = Math.max(...coords.map((c) => c.y + NODE_HEIGHT));
+      rg.layoutWidth = maxX;
       rg.width = maxX + REGION_PAD_X * 2;
       rg.height = maxY + REGION_PAD_TOP + REGION_PAD_BOTTOM;
     }
@@ -199,7 +201,7 @@ export function computeLayout(
           type: "service",
           parentId: rg.id,
           position: {
-            x: REGION_PAD_X + c.x - (rg.width - REGION_PAD_X * 2 - NODE_WIDTH) / 2 + NODE_WIDTH / 2,
+            x: REGION_PAD_X + Math.max(0, (rg.width - REGION_PAD_X * 2 - rg.layoutWidth) / 2) + c.x,
             y: REGION_PAD_TOP + c.y,
           },
           data: svc.data,
