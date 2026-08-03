@@ -4,7 +4,8 @@ import { useLiveStore } from "@/lib/store";
 import { PROVIDERS } from "@/lib/constants";
 import { fmtMoney } from "@/lib/rng";
 import { getGlyph } from "@/lib/iconRegistry";
-import { MousePointerClick, X } from "lucide-react";
+import { X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState, useMemo } from "react";
 import type { MetricSpec, ServiceNode as ServiceNodeType } from "@/types/architecture";
 
@@ -32,35 +33,32 @@ export function DetailPanel() {
 
   return (
     <aside
-      className="relative border-l border-white/10 bg-zinc-950/95 backdrop-blur-md transition-all duration-200"
+      className="relative shrink-0 overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-md transition-[width,transform,opacity] duration-300 ease-out"
+      aria-hidden={!open}
+      inert={!open}
       style={{
-        width: 400,
-        transform: open ? "translateX(0)" : "translateX(100%)",
-        opacity: open ? 1 : 0,
+        width: open ? "min(400px, 100vw)" : 0,
+        transform: open ? "translateX(0)" : "translateX(16px)",
         pointerEvents: open ? "auto" : "none",
         zIndex: 40,
       } as React.CSSProperties}
     >
-      {node ? (
-        <DetailContent node={node} tab={tab} onTab={setTab} onClose={() => selectNode(null)} />
-      ) : (
-        <EmptyDetail />
-      )}
+      <AnimatePresence mode="popLayout">
+        {node && (
+          <motion.div
+            key={node.id}
+            initial={{ filter: "blur(8px)", opacity: 0, scale: 0.98 }}
+            animate={{ filter: "blur(0px)", opacity: 1, scale: 1 }}
+            exit={{ filter: "blur(8px)", opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.24, ease: "easeOut" }}
+            className="h-full"
+            style={{ width: "min(400px, 100vw)", transformOrigin: "right center" }}
+          >
+            <DetailContent node={node} tab={tab} onTab={setTab} onClose={() => selectNode(null)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </aside>
-  );
-}
-
-function EmptyDetail() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-      <MousePointerClick size={20} className="text-zinc-700" />
-      <div className="mt-3 text-[11px] uppercase tracking-widest text-zinc-600">
-        Select a service node
-      </div>
-      <div className="mt-1.5 text-[10px] text-zinc-700 max-w-[220px] leading-relaxed">
-        Click any node on the canvas to inspect its real-time usage, cost breakdown, and connections.
-      </div>
-    </div>
   );
 }
 
