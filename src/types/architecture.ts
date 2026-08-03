@@ -59,6 +59,31 @@ export type ServiceNodeData = {
   minimal?: boolean;
 };
 
+export type AutoscalingSchedule = {
+  tick: number;
+  desired: number;
+  label: string;
+};
+
+export type AutoscalingPolicy = {
+  min: number;
+  max: number;
+  targetCpu: number;
+  cooldownTicks: number;
+  warmupTicks: number;
+  scheduled: AutoscalingSchedule[];
+  predictive: AutoscalingSchedule[];
+};
+
+export type Ec2AutoscalingSimulation = {
+  kind: "ec2-autoscaling";
+  baseNodeIds: string[];
+  dynamicSlotIds: string[];
+  template: ServiceNodeData;
+  ingressNodeId: string;
+  policy: AutoscalingPolicy;
+};
+
 export type EdgeStatus = "active" | "idle" | "degraded";
 
 export type FlowEdgeData = {
@@ -98,4 +123,5 @@ export type Architecture = {
   edges: FlowEdge[];
   providerGroups: ProviderGroupNode[];
   regionGroups: RegionGroupNode[];
+  simulation?: Ec2AutoscalingSimulation;
 };

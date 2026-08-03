@@ -1,7 +1,6 @@
 "use client";
 
 import { useLiveStore } from "@/lib/store";
-import { PROVIDERS } from "@/lib/constants";
 import { fmtTick } from "@/lib/rng";
 import { Pause, Play, RotateCcw } from "lucide-react";
 
@@ -25,7 +24,7 @@ export function AppBar() {
         </span>
       </div>
 
-      <div className="absolute left-1/2 -translate-x-1/2">
+      <div className="absolute left-1/2 max-w-[48vw] -translate-x-1/2 overflow-x-auto">
         <ArchSwitcher />
       </div>
 
@@ -81,7 +80,7 @@ function ArchSwitcher() {
           <button
             key={opt.id}
             onClick={() => useLiveStore.getState().setArch(opt.arch)}
-            className={`rounded-full px-4 py-1.5 text-[11px] font-medium transition-all duration-200 active:scale-[0.98] ${
+            className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[11px] font-medium transition-all duration-200 active:scale-[0.98] ${
               active
                 ? "bg-zinc-100 text-zinc-900"
                 : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"

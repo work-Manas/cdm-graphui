@@ -5,37 +5,33 @@ import { ArchitectureView } from "@/components/canvas/ArchitectureView";
 import { AppBar } from "@/components/chrome/AppBar";
 import { LegendPanel } from "@/components/chrome/LegendPanel";
 import { MetaPanel } from "@/components/chrome/MetaPanel";
+import { AutoscalingPanel } from "@/components/chrome/AutoscalingPanel";
 import { DetailPanel } from "@/components/detail/DetailPanel";
 import { ARCH_INDEX, ARCH_ORDER } from "@/data/architectures";
 import { useLiveStore } from "@/lib/store";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
-import type { Architecture } from "@/types/architecture";
 
 export default function Home() {
   const setArch = useLiveStore((s) => s.setArch);
   const start = useLiveStore((s) => s.start);
-  const archId = useLiveStore((s) => s.archId);
-  const [hydrated, setHydrated] = useState(false);
+  const arch = useLiveStore((s) => s.arch);
   const [labelsVisible, setLabelsVisible] = useState(false);
   const [minimal, setMinimal] = useState(false);
 
   useKeyboardShortcuts();
 
   useEffect(() => {
-    if (!hydrated && ARCH_ORDER.length) {
+    if (!arch && ARCH_ORDER.length) {
       setArch(ARCH_INDEX[ARCH_ORDER[0]]);
       start();
-      setHydrated(true);
     }
-  }, [hydrated, setArch, start]);
-
-  const arch: Architecture | null = archId ? ARCH_INDEX[archId] : null;
+  }, [arch, setArch, start]);
 
   if (!arch) {
     return (
       <main className="flex h-full w-full items-center justify-center text-zinc-500">
         <div className="font-mono text-xs">
-          {hydrated ? "Loading architecture..." : "Initializing live engine..."}
+          Initializing live engine...
         </div>
       </main>
     );
@@ -52,6 +48,7 @@ export default function Home() {
              minimal={minimal}
            />
           <MetaPanel arch={arch} />
+          <AutoscalingPanel />
            <LegendPanel
              arch={arch}
              labelsVisible={labelsVisible}

@@ -23,6 +23,8 @@ type MetricInit = {
 };
 
 type ServiceInit = {
+  id?: string;
+  instanceId?: string;
   morphKey: string;
   provider: ServiceNodeData["provider"];
   region: string;
@@ -43,7 +45,7 @@ type ServiceInit = {
 };
 
 export function makeServiceNode(init: ServiceInit): ServiceNode {
-  const id = `svc-${++nodeSeq}`;
+  const id = init.id ?? `svc-${++nodeSeq}`;
   const metrics: MetricSpec[] = init.metrics.map((m) => ({
     key: m.key,
     label: m.label,
@@ -63,7 +65,7 @@ export function makeServiceNode(init: ServiceInit): ServiceNode {
       region: init.region,
       serviceName: init.serviceName,
       instanceType: init.instanceType,
-      instanceId: makeInstanceId(init.provider),
+      instanceId: init.instanceId ?? makeInstanceId(init.provider),
       az: init.az,
       iconKey: init.iconKey,
       status: init.status ?? "healthy",
@@ -93,6 +95,7 @@ function makeInstanceId(provider: string): string {
 }
 
 type EdgeInit = {
+  id?: string;
   source: string;
   target: string;
   ports?: ServiceNodeData["config"]["ports"];
@@ -103,7 +106,7 @@ type EdgeInit = {
 
 export function makeFlowEdge(init: EdgeInit): FlowEdge {
   return {
-    id: `edge-${++edgeSeq}`,
+    id: init.id ?? `edge-${++edgeSeq}`,
     type: "flow",
     source: init.source,
     target: init.target,
@@ -156,8 +159,9 @@ export function collectArch(
   edges: FlowEdge[],
   providerGroups: ProviderGroupNode[],
   regionGroups: RegionGroupNode[],
+  simulation?: Architecture["simulation"],
 ): Architecture {
-  return { id, name, tagline, nodes, edges, providerGroups, regionGroups };
+  return { id, name, tagline, nodes, edges, providerGroups, regionGroups, simulation };
 }
 
 export function resetSeq() {

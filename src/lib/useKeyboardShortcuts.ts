@@ -12,7 +12,7 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select, button, [contenteditable=true]")) return;
       if (e.key === "Escape") selectNode(null);
       else if (e.code === "Space") {
         e.preventDefault();
