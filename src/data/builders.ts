@@ -26,7 +26,6 @@ type ServiceInit = {
   morphKey: string;
   provider: ServiceNodeData["provider"];
   region: string;
-  serviceKind: ServiceNodeData["serviceKind"];
   serviceName: string;
   instanceType: string;
   az: string;
@@ -40,17 +39,8 @@ type ServiceInit = {
   monthly: number;
   breakdown: { label: string; amount: number }[];
   uptimePct: number;
-  lastIncident?: string;
   metrics: MetricInit[];
 };
-
-export function emptyHistory(metrics: MetricSpec[]): Record<MetricKey, number[]> {
-  const out = {} as Record<MetricKey, number[]>;
-  for (const m of metrics) {
-    out[m.key] = [];
-  }
-  return out;
-}
 
 export function makeServiceNode(init: ServiceInit): ServiceNode {
   const id = `svc-${++nodeSeq}`;
@@ -71,7 +61,6 @@ export function makeServiceNode(init: ServiceInit): ServiceNode {
       morphKey: init.morphKey,
       provider: init.provider,
       region: init.region,
-      serviceKind: init.serviceKind,
       serviceName: init.serviceName,
       instanceType: init.instanceType,
       instanceId: makeInstanceId(init.provider),
@@ -91,12 +80,8 @@ export function makeServiceNode(init: ServiceInit): ServiceNode {
       },
       uptime: {
         pct_30d: init.uptimePct,
-        lastIncident: init.lastIncident ?? null,
       },
       metrics,
-      costSoFarToday: 0,
-      history: emptyHistory(metrics),
-      events: [],
     },
   };
 }
@@ -112,7 +97,7 @@ type EdgeInit = {
   target: string;
   ports?: ServiceNodeData["config"]["ports"];
   status?: "active" | "idle" | "degraded";
-  throughput?: { current: number; peak: number };
+  throughput?: number;
   label?: string;
 };
 
@@ -126,7 +111,7 @@ export function makeFlowEdge(init: EdgeInit): FlowEdge {
       kind: "flow",
       ports: init.ports ?? [],
       status: init.status ?? "active",
-      throughput: init.throughput ?? { current: 0, peak: 0 },
+      throughput: init.throughput ?? 0,
       label: init.label ?? "",
     },
   };

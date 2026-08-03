@@ -1,20 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 
 export type ProviderId = "aws" | "azure" | "gcp" | "nvidia";
-export type ServiceKind =
-  | "compute"
-  | "container"
-  | "function"
-  | "gpu"
-  | "storage"
-  | "database"
-  | "cache"
-  | "queue"
-  | "network"
-  | "cdn"
-  | "edge"
-  | "waf"
-  | "loadbalancer";
 
 export type Protocol = "HTTPS" | "HTTP" | "gRPC" | "TCP" | "TLS" | "SSH" | "AMQP" | "NFS";
 
@@ -49,7 +35,6 @@ export type ServiceNodeData = {
   morphKey: string;
   provider: ProviderId;
   region: string;
-  serviceKind: ServiceKind;
   serviceName: string;
   instanceType: string;
   instanceId: string;
@@ -69,12 +54,8 @@ export type ServiceNodeData = {
   };
   uptime: {
     pct_30d: number;
-    lastIncident: string | null;
   };
   metrics: MetricSpec[];
-  costSoFarToday: number;
-  history: Record<MetricKey, number[]>;
-  events: { ts: string; type: string; message: string }[];
   minimal?: boolean;
 };
 
@@ -84,7 +65,7 @@ export type FlowEdgeData = {
   kind: "flow";
   ports: PortSpec[];
   status: EdgeStatus;
-  throughput: { current: number; peak: number };
+  throughput: number;
   label: string;
 };
 
@@ -108,8 +89,6 @@ export type ServiceNode = Node<ServiceNodeData, "service">;
 export type ProviderGroupNode = Node<ProviderGroupData, "providerGroup">;
 export type RegionGroupNode = Node<RegionGroupData, "regionGroup">;
 export type FlowEdge = Edge<FlowEdgeData, "flow">;
-
-export type AnyFlowNode = ServiceNode | ProviderGroupNode | RegionGroupNode;
 
 export type Architecture = {
   id: string;

@@ -36,13 +36,6 @@ export function fmtMoney(n: number, digits = 2): string {
   });
 }
 
-export function fmtNum(n: number, digits = 1): string {
-  return n.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
-
 export function fmtTick(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);

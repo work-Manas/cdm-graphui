@@ -4,9 +4,7 @@ import { buildHybridMulti } from "./hybridMulti";
 import { buildThreeTierWeb } from "./threeTierWeb";
 import type { Architecture } from "@/types/architecture";
 
-export { buildThreeTierWeb, buildHybridMulti, buildGpuInference };
-
-export function buildAllArchitectures(): Architecture[] {
+function buildAllArchitectures(): Architecture[] {
   resetSeq();
   const a = buildThreeTierWeb();
   const b = buildHybridMulti();

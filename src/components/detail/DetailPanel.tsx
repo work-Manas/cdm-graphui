@@ -1,6 +1,5 @@
 "use client";
 
-import * as R from "recharts";
 import { useLiveStore } from "@/lib/store";
 import { PROVIDERS } from "@/lib/constants";
 import { fmtMoney } from "@/lib/rng";
@@ -193,7 +192,12 @@ function OverviewTab({
 
 function MetricRow({ m, history }: { m: MetricSpec; history: number[] }) {
   const latest = history.length ? history[history.length - 1] : m.baseline;
-  const data = history.map((v, i) => ({ t: i, v }));
+  const max = Math.max(...history, 1);
+  const min = Math.min(...history, 0);
+  const range = max - min || 1;
+  const points = history.map((value, index) =>
+    `${(index / (history.length - 1 || 1)) * 100},${48 - ((value - min) / range) * 48}`,
+  ).join(" ");
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1">
@@ -206,25 +210,9 @@ function MetricRow({ m, history }: { m: MetricSpec; history: number[] }) {
         </span>
       </div>
       <div className="h-12 w-full">
-        <R.ResponsiveContainer width="100%" height="100%">
-          <R.LineChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id={`sparkline-${m.key}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <R.Line
-              type="monotone"
-              dataKey="v"
-              stroke="#10b981"
-              strokeWidth={1.4}
-              dot={false}
-              isAnimationActive={false}
-              name={m.label}
-            />
-          </R.LineChart>
-        </R.ResponsiveContainer>
+        <svg viewBox="0 0 100 48" preserveAspectRatio="none" className="h-full w-full">
+          <polyline points={points} fill="none" stroke="#10b981" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
+        </svg>
       </div>
     </div>
   );

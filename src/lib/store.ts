@@ -4,9 +4,7 @@ import { create } from "zustand";
 import type { Architecture, FlowEdge, ServiceNode, ServiceStatus } from "@/types/architecture";
 import { chance, jitter, mulberry32, pick, type RNG } from "@/lib/rng";
 import { useMorphStore } from "@/lib/morphStore";
-
-const TICK_MS = 1500;
-const HISTORY_LEN = 60;
+import { HISTORY_LEN, TICK_MS } from "@/lib/constants";
 
 export type NodeLiveState = {
   metrics: Record<string, number>;
@@ -17,7 +15,6 @@ export type NodeLiveState = {
 };
 
 export type EdgeLiveState = {
-  throughput: number;
   status: "active" | "idle" | "degraded";
 };
 
@@ -80,10 +77,7 @@ function seedNode(rng: RNG, n: ServiceNode): NodeLiveState {
 
 function seedEdge(rng: RNG, e: FlowEdge): EdgeLiveState {
   const d = e.data;
-  if (!d) return { throughput: 0, status: "idle" };
-  const t = d.throughput ?? { current: 0, peak: 0 };
-  const v = jitter(rng, t.current, t.current * 0.3);
-  return { throughput: Math.max(0, v), status: d.status };
+  return { status: d?.status ?? "idle" };
 }
 
 export const useLiveStore = create<LiveStore>((set, get) => ({
@@ -117,7 +111,6 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
       const prevGroupKeys = new Set<string>();
       const nextGroupKeys = new Set<string>();
       for (const g of prev.providerGroups) prevGroupKeys.add(g.id);
-      for (const g of prev.providerGroups) prevGroupKeys.add(g.id);
       for (const g of prev.regionGroups) prevGroupKeys.add(g.id);
       for (const g of arch.providerGroups) nextGroupKeys.add(g.id);
       for (const g of arch.regionGroups) nextGroupKeys.add(g.id);
@@ -129,11 +122,7 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
       for (const g of arch.regionGroups) enteringKeys.add(g.id);
     }
 
-    useMorphStore.getState().beginMorph(
-      prev?.id ?? null,
-      Array.from(enteringKeys),
-      Array.from(exitingKeys),
-    );
+    useMorphStore.getState().beginMorph(Array.from(enteringKeys), Array.from(exitingKeys));
     window.setTimeout(() => useMorphStore.getState().finishMorph(), 700);
 
     const rng = mulberry32(0xc0ffee);
@@ -201,28 +190,13 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
       if (!prev) continue;
       const d = e.data;
       if (!d) continue;
-      const t = d.throughput ?? { current: 0, peak: 0 };
-      let throughput = jitter(rng, Math.max(t.current, 1), t.current * 0.25);
-      if (prev.status === "idle") throughput *= 0.15;
-      if (prev.status === "degraded") throughput *= 0.55;
       let status = prev.status;
       if (chance(rng, 0.01)) {
         status = status === "active" ? "degraded" : "active";
       }
-      edgeStates[e.id] = { throughput: Math.max(0, throughput), status };
+      edgeStates[e.id] = { status };
     }
 
     set({ tickNumber, tickElapsedMs, nodeStates, edgeStates, rng });
   },
 }));
-
-export const SELECTORS = {
-  node: (id: string) => (s: LiveStore) => s.nodeStates[id],
-  edge: (id: string) => (s: LiveStore) => s.edgeStates[id],
-  selectedNode: (s: LiveStore) =>
-    s.arch && s.selectedNodeId
-      ? (s.arch.nodes.find((n) => n.id === s.selectedNodeId) ?? null)
-      : null,
-  tickNumber: (s: LiveStore) => s.tickNumber,
-  tickElapsedMs: (s: LiveStore) => s.tickElapsedMs,
-};

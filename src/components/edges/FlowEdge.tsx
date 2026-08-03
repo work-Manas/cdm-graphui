@@ -15,7 +15,7 @@ type FlowEdgeData = {
   kind: "flow";
   ports: { protocol: string; port: number }[];
   status: "active" | "idle" | "degraded";
-  throughput: { current: number; peak: number };
+  throughput: number;
   label: string;
   route?: { x: number; y: number }[];
   labelsVisible?: boolean;

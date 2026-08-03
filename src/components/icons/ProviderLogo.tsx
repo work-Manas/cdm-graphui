@@ -9,9 +9,7 @@ type Props = {
   className?: string;
 };
 
-// ponytail: colored-monochrome logos via Iconify API ?color= query (single-path,
-// fill=currentColor swapped to brand hex server-side). No local assets, no deps.
-// Fallback ladder: lineicons -> simple-icons -> mdi -> generic cloud glyph.
+// ponytail: Iconify avoids local assets; vendor logos if network loading becomes unreliable.
 
 const API = "https://api.iconify.design";
 
@@ -20,19 +18,6 @@ const LADDER: Record<string, string[]> = {
   azure:        ["lineicons/azure", "mdi/microsoft-azure"],
   gcp:          ["lineicons/google-cloud", "mdi/google-cloud"],
   nvidia:       ["lineicons/nvidia"],
-  cloudflare:   ["lineicons/cloudflare"],
-  vercel:       ["lineicons/vercel"],
-  docker:       ["lineicons/docker"],
-  kubernetes:   ["lineicons/kubernetes"],
-  supabase:     ["lineicons/supabase"],
-  heroku:       ["simple-icons/heroku"],
-  linode:       ["mdi/linode"],
-  netlify:      ["lineicons/netlify"],
-  openai:       ["simple-icons/openai"],
-  redis:        ["simple-icons/redis"],
-  postgresql:   ["lineicons/postgresql"],
-  rabbitmq:     ["simple-icons/rabbitmq", "mdi/rabbit"],
-  digitalocean: ["lineicons/digitalocean"],
 };
 
 const GENERIC = "mdi/cloud-outline";

@@ -1,7 +1,6 @@
 import Dagre from "@dagrejs/dagre";
 import type { Edge, Node } from "@xyflow/react";
 import type {
-  AnyFlowNode,
   Architecture,
   FlowEdge,
   ProviderId,
