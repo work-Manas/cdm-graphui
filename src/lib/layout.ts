@@ -17,7 +17,6 @@ const REGION_PAD_X = 22;
 const REGION_PAD_TOP = 54;
 const REGION_PAD_BOTTOM = 22;
 const GROUP_GAP_X = 64;
-const GROUP_GAP_Y = 64;
 
 type RegionGroup = {
   id: string;
@@ -88,7 +87,7 @@ export function computeLayout(
   // handles and leaves clear horizontal lanes for orthogonal edge routing.
   const nodesPerRegion = new Map<string, { id: string; x: number; y: number }[]>();
 
-  for (const [_, pg] of providersMap) {
+  for (const pg of providersMap.values()) {
     for (const rg of pg.regions) {
       const g = new Dagre.graphlib.Graph();
       g.setGraph({
@@ -100,7 +99,6 @@ export function computeLayout(
       });
       g.setDefaultEdgeLabel(() => ({}));
       const svcIds = rg.services.map((s) => s.id);
-      const idToSvc = new Map(rg.services.map((s) => [s.id, s] as const));
       for (const id of svcIds) {
         g.setNode(id, { width: nodeWidth, height: nodeHeight });
       }
@@ -117,8 +115,8 @@ export function computeLayout(
       });
       nodesPerRegion.set(rg.id, coords);
 
-      const maxX = Math.max(...coords.map((c) => c.x + nodeWidth));
-      const maxY = Math.max(...coords.map((c) => c.y + nodeHeight));
+      const maxX = Math.max(0, ...coords.map((c) => c.x + nodeWidth));
+      const maxY = Math.max(0, ...coords.map((c) => c.y + nodeHeight));
       rg.layoutWidth = maxX;
       rg.width = maxX + REGION_PAD_X * 2;
       rg.height = maxY + REGION_PAD_TOP + REGION_PAD_BOTTOM;
@@ -126,7 +124,7 @@ export function computeLayout(
   }
 
   // Pack regions inside provider groups. Layout: regions stacked vertically with gap.
-  for (const [_, pg] of providersMap) {
+  for (const pg of providersMap.values()) {
     let yCursor = 0;
     let regionMaxWidth = 0;
     for (const rg of pg.regions) {
@@ -142,7 +140,7 @@ export function computeLayout(
   // Pack provider groups horizontally with gaps
   let xCursor = 0;
   let maxBottom = 0;
-  for (const [_, pg] of providersMap) {
+  for (const pg of providersMap.values()) {
     pg.offsetX = xCursor;
     pg.offsetY = 0;
     xCursor += pg.width + GROUP_GAP_X;
@@ -154,7 +152,7 @@ export function computeLayout(
   const flowNodes: Node[] = [];
   const serviceRects = new Map<string, ServiceRect>();
 
-  for (const [_, pg] of providersMap) {
+  for (const pg of providersMap.values()) {
     flowNodes.push({
       id: pg.id,
       type: "providerGroup",
@@ -172,7 +170,7 @@ export function computeLayout(
     });
   }
 
-  for (const [_, pg] of providersMap) {
+  for (const pg of providersMap.values()) {
     for (const rg of pg.regions) {
       flowNodes.push({
         id: rg.id,
@@ -196,11 +194,12 @@ export function computeLayout(
     }
   }
 
-  for (const [_, pg] of providersMap) {
+  for (const pg of providersMap.values()) {
     for (const rg of pg.regions) {
       const coords = nodesPerRegion.get(rg.id) ?? [];
       for (const c of coords) {
-        const svc = arch.nodes.find((n) => n.id === c.id)!;
+        const svc = arch.nodes.find((n) => n.id === c.id);
+        if (!svc) continue;
         flowNodes.push({
           ...svc,
           id: svc.id,
@@ -263,8 +262,8 @@ function makeRoute(
   const laneIndex = routedEdges.size;
   routedEdges.add(edge.id);
   const laneY = sourcePoint.x < targetPoint.x
-    ? Math.min(...allRects.map((r) => r.y)) - 48 - laneIndex * 14
-    : Math.max(...allRects.map((r) => r.y + r.height)) + 48 + laneIndex * 14;
+    ? Math.min(0, ...allRects.map((r) => r.y)) - 48 - laneIndex * 14
+    : Math.max(0, ...allRects.map((r) => r.y + r.height)) + 48 + laneIndex * 14;
   const sourceLaneX = sourcePoint.x + 16;
   const targetLaneX = targetPoint.x - 16;
 

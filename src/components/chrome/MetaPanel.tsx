@@ -1,7 +1,7 @@
 "use client";
 
 import { useLiveStore } from "@/lib/store";
-import { PROVIDERS } from "@/lib/constants";
+import { getProvider } from "@/lib/constants";
 import { fmtMoney } from "@/lib/rng";
 import type { Architecture } from "@/types/architecture";
 
@@ -37,7 +37,7 @@ export function MetaPanel({ arch }: { arch: Architecture }) {
         </div>
         <div className="mt-2 flex items-center gap-1.5">
           {providersUsed.map((id) => {
-            const p = PROVIDERS[id];
+            const p = getProvider(id);
             return (
               <span
                 key={id}
@@ -62,5 +62,5 @@ export function MetaPanel({ arch }: { arch: Architecture }) {
 function useProvidersUsed(arch: Architecture) {
   const set = new Set<string>();
   for (const n of arch.nodes) set.add(n.data.provider);
-  return Array.from(set) as (keyof typeof PROVIDERS)[];
+  return Array.from(set);
 }

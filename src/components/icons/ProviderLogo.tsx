@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProviderId } from "@/types/architecture";
-import { PROVIDERS } from "@/lib/constants";
+import { getProvider } from "@/lib/constants";
 
 type Props = {
   provider: ProviderId | string;
@@ -28,7 +28,7 @@ function url(icon: string, hex: string) {
 
 export function ProviderLogo({ provider, size = 14, className }: Props) {
   const ladder = LADDER[provider] ? [...LADDER[provider], GENERIC] : [GENERIC];
-  const brand = PROVIDERS[provider as ProviderId]?.color ?? "#a1a1aa";
+  const brand = getProvider(provider).color;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

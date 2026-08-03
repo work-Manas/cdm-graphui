@@ -22,8 +22,8 @@ import { ServiceNode } from "@/components/nodes/ServiceNode";
 import { useLiveEngine } from "@/lib/useLiveEngine";
 import { useLiveStore } from "@/lib/store";
 import { computeLayout } from "@/lib/layout";
-import { PROVIDERS } from "@/lib/constants";
-import type { Architecture, ProviderId } from "@/types/architecture";
+import { getProvider } from "@/lib/constants";
+import type { Architecture } from "@/types/architecture";
 
 const NODE_TYPES = {
   service: ServiceNode,
@@ -47,10 +47,8 @@ function InnerFlow({ arch, labelsVisible, minimal, viewport, onViewportChange }:
   onViewportChange: (viewport: Viewport) => void;
 }) {
   useLiveEngine();
-  const running = useLiveStore((s) => s.running);
   const tickNumber = useLiveStore((s) => s.tickNumber);
   const selectNode = useLiveStore((s) => s.selectNode);
-  const selectedNodeId = useLiveStore((s) => s.selectedNodeId);
 
   const layouted = useMemo(() => computeLayout(arch, minimal), [arch, minimal]);
 
@@ -114,7 +112,7 @@ function InnerFlow({ arch, labelsVisible, minimal, viewport, onViewportChange }:
         className="!border !border-white/10 !bg-zinc-900/80 !backdrop-blur-md [&>svg>rect:first-child]:!fill-zinc-800"
         nodeColor={(n) => {
           if (n.type === "service" && n.data?.provider) {
-            return PROVIDERS[n.data.provider as ProviderId].color;
+            return getProvider(String(n.data.provider)).color;
           }
           return "#a1a1aa";
         }}
@@ -144,6 +142,14 @@ export function ArchitectureView({ arch, labelsVisible, minimal }: {
         exit={reduceMotion ? undefined : { opacity: 0, filter: "blur(7px)" }}
         transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
       >
+        {arch.nodes.length === 0 && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+            <div className="rounded-lg border border-white/10 bg-zinc-950/80 px-5 py-4 text-center backdrop-blur-md">
+              <div className="text-sm font-medium text-zinc-200">No architecture data</div>
+              <div className="mt-1 text-xs text-zinc-500">Waiting for the inventory source to return resources.</div>
+            </div>
+          </div>
+        )}
         <ReactFlowProvider>
           <InnerFlow
             arch={arch}

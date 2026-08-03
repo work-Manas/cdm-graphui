@@ -1,12 +1,12 @@
 "use client";
 
 import { useLiveStore } from "@/lib/store";
-import { PROVIDERS } from "@/lib/constants";
+import { getProvider } from "@/lib/constants";
 import { fmtMoney } from "@/lib/rng";
 import { getGlyph } from "@/lib/iconRegistry";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState, useMemo } from "react";
+import { createElement, useState, useMemo } from "react";
 import type { MetricSpec, ServiceNode as ServiceNodeType } from "@/types/architecture";
 
 const TABS = ["overview", "cost", "connections", "events"] as const;
@@ -76,8 +76,8 @@ function DetailContent({
   const live = useLiveStore((s) => s.nodeStates[node.id]);
   const liveHistory = live?.history ?? {};
   const events = live?.events ?? [];
-  const p = PROVIDERS[node.data.provider];
-  const Glyph = getGlyph(node.data.iconKey);
+  const p = getProvider(node.data.provider);
+  const glyph = getGlyph(node.data.iconKey);
   const status = live?.status ?? node.data.status;
 
   const connections = useConnections(node.id);
@@ -90,7 +90,7 @@ function DetailContent({
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded"
             style={{ background: `${p.color}1a`, color: p.color }}
           >
-            <Glyph size={14} weight="bold" />
+            {createElement(glyph, { size: 14, weight: "bold" })}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">

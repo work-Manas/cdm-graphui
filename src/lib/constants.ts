@@ -17,6 +17,13 @@ export const PROVIDERS = {
   },
 } as const;
 
+export function getProvider(provider: string): { label: string; color: string } {
+  return PROVIDERS[provider as keyof typeof PROVIDERS] ?? {
+    label: provider.toUpperCase() || "OTHER",
+    color: "#a1a1aa",
+  };
+}
+
 export const TICK_MS = 1500;
 export const HISTORY_LEN = 60;
 

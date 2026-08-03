@@ -1,8 +1,8 @@
 import type { Edge, Node } from "@xyflow/react";
 
-export type ProviderId = "aws" | "azure" | "gcp" | "nvidia";
+export type ProviderId = "aws" | "azure" | "gcp" | "nvidia" | (string & {});
 
-export type Protocol = "HTTPS" | "HTTP" | "gRPC" | "TCP" | "TLS" | "SSH" | "AMQP" | "NFS";
+export type Protocol = "HTTPS" | "HTTP" | "gRPC" | "TCP" | "TLS" | "SSH" | "AMQP" | "NFS" | (string & {});
 
 export type PortSpec = {
   protocol: Protocol;
@@ -19,7 +19,8 @@ export type MetricKey =
   | "throughput"
   | "iops"
   | "storage_gb"
-  | "queue_depth";
+  | "queue_depth"
+  | (string & {});
 
 export type MetricSpec = {
   key: MetricKey;
@@ -34,6 +35,7 @@ export type ServiceNodeData = {
   kind: "service";
   morphKey: string;
   provider: ProviderId;
+  scope?: Record<string, string>;
   region: string;
   serviceName: string;
   instanceType: string;
@@ -56,6 +58,7 @@ export type ServiceNodeData = {
     pct_30d: number;
   };
   metrics: MetricSpec[];
+  metadata?: Record<string, string | number | boolean | null>;
   minimal?: boolean;
   retiring?: boolean;
 };
@@ -93,6 +96,8 @@ export type FlowEdgeData = {
   status: EdgeStatus;
   throughput: number;
   label: string;
+  relationship?: string;
+  metadata?: Record<string, string | number | boolean | null>;
 };
 
 export type ProviderGroupData = {

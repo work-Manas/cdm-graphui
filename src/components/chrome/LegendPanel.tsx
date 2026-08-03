@@ -1,6 +1,6 @@
 "use client";
 
-import { PROVIDERS } from "@/lib/constants";
+import { getProvider } from "@/lib/constants";
 import { ProviderLogo } from "@/components/icons/ProviderLogo";
 import type { Architecture, ProviderId } from "@/types/architecture";
 
@@ -32,7 +32,7 @@ export function LegendPanel({
         </div>
         <div className="space-y-1">
           {list.map((id) => {
-            const p = PROVIDERS[id];
+            const p = getProvider(id);
             const count = arch.nodes.filter((n) => n.data.provider === id).length;
             return (
               <div key={id} className="flex items-center gap-2">

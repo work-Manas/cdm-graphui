@@ -96,7 +96,8 @@ function workloadAt(tick: number): number {
 }
 
 function makeAutoscalingNode(arch: Architecture, slot: number, current: number): ServiceNode {
-  const simulation = arch.simulation!;
+  const simulation = arch.simulation;
+  if (!simulation || simulation.kind !== "ec2-autoscaling") throw new Error("Autoscaling simulation is not configured");
   const id = simulation.dynamicSlotIds[slot];
   const template = simulation.template;
   return {
@@ -115,10 +116,13 @@ function makeAutoscalingNode(arch: Architecture, slot: number, current: number):
 }
 
 function makeAutoscalingEdges(arch: Architecture, nodes: ServiceNode[]): FlowEdge[] {
-  const simulation = arch.simulation!;
+  const simulation = arch.simulation;
+  if (!simulation || simulation.kind !== "ec2-autoscaling") return [];
   const databaseId = simulation.baseNodeIds[simulation.baseNodeIds.length - 1];
+  if (!databaseId) return [];
+  const trafficEdge = arch.edges.find((edge) => edge.id === "asg-traffic-alb");
   return [
-    arch.edges.find((edge) => edge.id === "asg-traffic-alb")!,
+    ...(trafficEdge ? [trafficEdge] : []),
     ...nodes.flatMap((node) => [
       {
         id: `asg-alb-${node.id}`,
@@ -152,6 +156,13 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
   rng: mulberry32(0xc0ffee),
 
   setArch: (arch) => {
+    arch = {
+      ...arch,
+      nodes: Array.isArray(arch.nodes) ? arch.nodes : [],
+      edges: Array.isArray(arch.edges) ? arch.edges.filter((edge) => edge?.source && edge?.target) : [],
+      providerGroups: Array.isArray(arch.providerGroups) ? arch.providerGroups : [],
+      regionGroups: Array.isArray(arch.regionGroups) ? arch.regionGroups : [],
+    };
     const prev = get().arch;
     const prevKeys = new Set<string>();
     const nextKeys = new Set<string>();
@@ -357,10 +368,11 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
       const cpu = Math.min(100, autoscalingWorkload / Math.max(activeIds.length * 12, 1));
       const requests = autoscalingWorkload / Math.max(activeIds.length, 1);
       for (const id of activeIds) {
+        if (!nodeStates[id]) continue;
         nodeStates[id].metrics.cpu = cpu;
         nodeStates[id].metrics.requests = requests;
-        nodeStates[id].history.cpu = [...nodeStates[id].history.cpu.slice(1), cpu];
-        nodeStates[id].history.requests = [...nodeStates[id].history.requests.slice(1), requests];
+        nodeStates[id].history.cpu = [...(nodeStates[id].history.cpu ?? []).slice(1), cpu];
+        nodeStates[id].history.requests = [...(nodeStates[id].history.requests ?? []).slice(1), requests];
       }
       for (const id of ["asg-traffic", arch.simulation.ingressNodeId]) {
         if (!nodeStates[id]) continue;
@@ -369,7 +381,7 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
       }
       if (autoscalingActivity !== state.autoscalingActivity) {
         const controller = nodeStates[arch.simulation.ingressNodeId];
-        controller.events = [...controller.events.slice(-4), { ts: makeEventTs(tickElapsedMs), type: "autoscaling", message: autoscalingActivity.replace(/ @[0-9]+$/, "") }];
+        if (controller) controller.events = [...controller.events.slice(-4), { ts: makeEventTs(tickElapsedMs), type: "autoscaling", message: autoscalingActivity.replace(/ @[0-9]+$/, "") }];
       }
     }
 

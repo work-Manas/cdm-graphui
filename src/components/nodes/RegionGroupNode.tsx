@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { memo } from "react";
-import { PROVIDERS } from "@/lib/constants";
+import { getProvider } from "@/lib/constants";
 import { useMorphStore } from "@/lib/morphStore";
 import type { RegionGroupNode as RegionGroupNodeType } from "@/types/architecture";
 
@@ -12,7 +12,7 @@ type Props = {
 };
 
 function RegionGroupComponent({ id, data }: Props) {
-  const p = PROVIDERS[data.provider];
+  const p = getProvider(data.provider);
   const entering = useMorphStore((s) => s.enteringKeys.has(id));
   const morphAt = useMorphStore((s) => s.morphAt);
 

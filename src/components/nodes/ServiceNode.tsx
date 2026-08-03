@@ -2,8 +2,8 @@
 
 import { Handle, Position } from "@xyflow/react";
 import { motion } from "motion/react";
-import { memo } from "react";
-import { PROVIDERS } from "@/lib/constants";
+import { createElement, memo } from "react";
+import { getProvider } from "@/lib/constants";
 import { getGlyph } from "@/lib/iconRegistry";
 import { useLiveStore } from "@/lib/store";
 import { useMorphStore } from "@/lib/morphStore";
@@ -93,8 +93,8 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
     exit: { opacity: 0, scale: 0.9, filter: "blur(4px)" },
   };
 
-  const p = PROVIDERS[data.provider];
-  const Glyph = getGlyph(data.iconKey);
+  const p = getProvider(data.provider);
+  const glyph = getGlyph(data.iconKey);
 
   const status = liveState?.status ?? data.status;
   const dotColor = STATUS_DOT[status] ?? STATUS_DOT.healthy;
@@ -152,7 +152,7 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
               filter: selected ? `drop-shadow(0 0 7px ${p.color}66)` : "none",
             }}
           >
-            <Glyph size={20} weight="duotone" />
+            {createElement(glyph, { size: 20, weight: "duotone" })}
           </span>
           <span
             className="line-clamp-2 max-w-[102px] text-[9.5px] font-medium leading-[1.12] tracking-[0.01em] text-zinc-300"
@@ -211,7 +211,7 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
                 className="flex h-6 w-6 shrink-0 items-center justify-center rounded"
                 style={{ background: `${p.color}1a`, color: p.color }}
               >
-                <Glyph size={13} weight="bold" />
+                {createElement(glyph, { size: 13, weight: "bold" })}
               </div>
               <div className="flex min-w-0 flex-1 flex-col">
                 <div className="truncate text-[11.5px] font-medium leading-tight text-zinc-100">
