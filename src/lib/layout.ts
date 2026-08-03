@@ -15,7 +15,7 @@ const GROUP_PAD_X = 32;
 const GROUP_PAD_TOP = 44;
 const GROUP_PAD_BOTTOM = 32;
 const REGION_PAD_X = 22;
-const REGION_PAD_TOP = 36;
+const REGION_PAD_TOP = 54;
 const REGION_PAD_BOTTOM = 22;
 const GROUP_GAP_X = 64;
 const GROUP_GAP_Y = 64;
@@ -41,6 +41,9 @@ type ProviderGroup = {
   offsetX: number;
   offsetY: number;
 };
+
+type ServiceRect = { x: number; y: number; width: number; height: number };
+type RoutePoint = { x: number; y: number };
 
 export function computeLayout(
   arch: Architecture,
@@ -80,16 +83,17 @@ export function computeLayout(
     rg.services.push(svc);
   }
 
-  // Compute per-region internal layout (dagre, TB)
+  // Compute per-region internal layout (dagre, LR). This matches the service
+  // handles and leaves clear horizontal lanes for orthogonal edge routing.
   const nodesPerRegion = new Map<string, { id: string; x: number; y: number }[]>();
 
   for (const [_, pg] of providersMap) {
     for (const rg of pg.regions) {
       const g = new Dagre.graphlib.Graph();
       g.setGraph({
-        rankdir: "TB",
-        nodesep: 24,
-        ranksep: 64,
+        rankdir: "LR",
+        nodesep: 48,
+        ranksep: 96,
         marginx: 0,
         marginy: 0,
       });
@@ -147,6 +151,7 @@ export function computeLayout(
 
   // Initiate the React Flow node list. First the provider group nodes, then the region group nodes, then services.
   const flowNodes: Node[] = [];
+  const serviceRects = new Map<string, ServiceRect>();
 
   for (const [_, pg] of providersMap) {
     flowNodes.push({
@@ -206,20 +211,89 @@ export function computeLayout(
           },
           data: svc.data,
         });
+        serviceRects.set(svc.id, {
+          x: pg.offsetX + GROUP_PAD_X + REGION_PAD_X + Math.max(0, (rg.width - REGION_PAD_X * 2 - rg.layoutWidth) / 2) + c.x,
+          y: GROUP_PAD_TOP + rg.offsetY + REGION_PAD_TOP + c.y,
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
+        });
       }
     }
   }
 
+  const routedEdges = new Set<string>();
   const flowEdges: Edge[] = arch.edges.map((e) => ({
     ...e,
     type: "flow",
-    data: e.data,
+    data: {
+      ...e.data,
+      route: makeRoute(e, serviceRects, routedEdges),
+    },
   }));
 
   return {
     nodes: flowNodes,
     edges: flowEdges,
   };
+}
+
+function makeRoute(
+  edge: FlowEdge,
+  rects: Map<string, ServiceRect>,
+  routedEdges: Set<string>,
+): RoutePoint[] | undefined {
+  const source = rects.get(edge.source);
+  const target = rects.get(edge.target);
+  if (!source || !target) return undefined;
+
+  const sourcePoint = { x: source.x + source.width, y: source.y + source.height / 2 };
+  const targetPoint = { x: target.x, y: target.y + target.height / 2 };
+  const midX = (sourcePoint.x + targetPoint.x) / 2;
+  const blocked = [...rects.entries()].some(([id, rect]) => {
+    if (id === edge.source || id === edge.target) return false;
+    return segmentHitsRect(sourcePoint.x, sourcePoint.y, midX, sourcePoint.y, rect) ||
+      segmentHitsRect(midX, sourcePoint.y, midX, targetPoint.y, rect) ||
+      segmentHitsRect(midX, targetPoint.y, targetPoint.x, targetPoint.y, rect);
+  });
+
+  if (!blocked && sourcePoint.x < targetPoint.x) return undefined;
+
+  const allRects = [...rects.values()];
+  const laneIndex = routedEdges.size;
+  routedEdges.add(edge.id);
+  const laneY = sourcePoint.x < targetPoint.x
+    ? Math.min(...allRects.map((r) => r.y)) - 48 - laneIndex * 14
+    : Math.max(...allRects.map((r) => r.y + r.height)) + 48 + laneIndex * 14;
+  const sourceLaneX = sourcePoint.x + 16;
+  const targetLaneX = targetPoint.x - 16;
+
+  return [
+    sourcePoint,
+    { x: sourceLaneX, y: sourcePoint.y },
+    { x: sourceLaneX, y: laneY },
+    { x: targetLaneX, y: laneY },
+    { x: targetLaneX, y: targetPoint.y },
+    targetPoint,
+  ];
+}
+
+function segmentHitsRect(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  rect: ServiceRect,
+): boolean {
+  const clearance = 10;
+  const left = rect.x - clearance;
+  const right = rect.x + rect.width + clearance;
+  const top = rect.y - clearance;
+  const bottom = rect.y + rect.height + clearance;
+
+  if (y1 === y2) {
+    return y1 > top && y1 < bottom && Math.max(x1, x2) > left && Math.min(x1, x2) < right;
+  }
+  return x1 > left && x1 < right && Math.max(y1, y2) > top && Math.min(y1, y2) < bottom;
 }
 
 function countUniqueAzs(services: ServiceNode[]): number {

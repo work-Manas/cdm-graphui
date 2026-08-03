@@ -37,7 +37,7 @@ const DEFAULT_EDGE_OPTIONS = {
   type: "flow",
 };
 
-function InnerFlow({ arch }: { arch: Architecture }) {
+function InnerFlow({ arch, labelsVisible }: { arch: Architecture; labelsVisible: boolean }) {
   useLiveEngine();
   const running = useLiveStore((s) => s.running);
   const tickNumber = useLiveStore((s) => s.tickNumber);
@@ -58,8 +58,11 @@ function InnerFlow({ arch }: { arch: Architecture }) {
   }, [layouted, tickNumber]);
 
   const edgesLive = useMemo<Edge[]>(() => {
-    return layouted.edges.map((e) => ({ ...e, data: { ...(e.data as object), __tick: tickNumber } }));
-  }, [layouted, tickNumber]);
+    return layouted.edges.map((e) => ({
+      ...e,
+      data: { ...(e.data as object), __tick: tickNumber, labelsVisible },
+    }));
+  }, [layouted, labelsVisible, tickNumber]);
 
   const onPaneClick = () => selectNode(null);
   const onNodeClick: NodeMouseHandler = (_e, node) => {
@@ -112,10 +115,10 @@ function InnerFlow({ arch }: { arch: Architecture }) {
   );
 }
 
-export function ArchitectureView({ arch }: { arch: Architecture }) {
+export function ArchitectureView({ arch, labelsVisible }: { arch: Architecture; labelsVisible: boolean }) {
   return (
     <ReactFlowProvider>
-      <InnerFlow arch={arch} />
+      <InnerFlow arch={arch} labelsVisible={labelsVisible} />
     </ReactFlowProvider>
   );
 }

@@ -28,7 +28,10 @@ function RegionGroupComponent({ id, data }: Props) {
         background: `${p.color}06`,
       }}
     >
-      <div className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1.5">
+      <div
+        className="absolute left-2 top-2 z-10 flex items-center gap-1.5 rounded-md border px-1.5 py-1 backdrop-blur-md"
+        style={{ background: "rgba(9,9,11,0.9)", borderColor: `${p.color}22` }}
+      >
         <span
           className="text-[10px] font-medium uppercase tracking-wider"
           style={{ fontFamily: "var(--font-mono)", color: p.color }}
@@ -43,8 +46,12 @@ function RegionGroupComponent({ id, data }: Props) {
         </span>
       </div>
       <span
-        className="absolute right-2.5 top-2.5 text-[8.5px] uppercase tracking-wider text-zinc-600"
-        style={{ fontFamily: "var(--font-mono)" }}
+        className="absolute right-2 top-2 z-10 rounded-md border px-1.5 py-1 text-[8.5px] uppercase tracking-wider text-zinc-500 backdrop-blur-md"
+        style={{
+          fontFamily: "var(--font-mono)",
+          background: "rgba(9,9,11,0.9)",
+          borderColor: `${p.color}18`,
+        }}
       >
         {data.serviceCount} svcs
       </span>

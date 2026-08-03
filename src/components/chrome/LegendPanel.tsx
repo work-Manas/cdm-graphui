@@ -4,7 +4,11 @@ import { PROVIDERS } from "@/lib/constants";
 import { ProviderLogo } from "@/components/icons/ProviderLogo";
 import type { Architecture, ProviderId } from "@/types/architecture";
 
-export function LegendPanel({ arch }: { arch: Architecture }) {
+export function LegendPanel({ arch, labelsVisible, onToggleLabels }: {
+  arch: Architecture;
+  labelsVisible: boolean;
+  onToggleLabels: () => void;
+}) {
   const used = new Set<ProviderId>();
   for (const n of arch.nodes) used.add(n.data.provider);
   const list = Array.from(used);
@@ -36,6 +40,18 @@ export function LegendPanel({ arch }: { arch: Architecture }) {
             );
           })}
         </div>
+        <button
+          type="button"
+          onClick={onToggleLabels}
+          className="mt-2 flex w-full items-center justify-between border-t border-white/10 pt-2 text-[9px] uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-200"
+          style={{ fontFamily: "var(--font-mono)", pointerEvents: "auto" }}
+          aria-pressed={labelsVisible}
+        >
+          <span>Connection labels</span>
+          <span className={labelsVisible ? "text-emerald-400" : "text-zinc-600"}>
+            {labelsVisible ? "ON" : "OFF"}
+          </span>
+        </button>
       </div>
     </div>
   );

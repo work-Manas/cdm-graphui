@@ -36,7 +36,10 @@ function ProviderGroupComponent({ id, data }: Props) {
           backgroundSize: "20px 20px",
         }}
       />
-      <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
+      <div
+        className="absolute left-2.5 top-2 z-10 flex items-center gap-2 rounded-md border px-1.5 py-1 backdrop-blur-md"
+        style={{ background: "rgba(9,9,11,0.9)", borderColor: `${p.color}22` }}
+      >
         <ProviderLogo provider={data.provider} size={14} />
         <span
           className="text-[11px] font-medium uppercase tracking-wider"
@@ -46,8 +49,12 @@ function ProviderGroupComponent({ id, data }: Props) {
         </span>
       </div>
       <div
-        className="absolute right-3 top-3 flex items-center gap-2 text-[9.5px] uppercase tracking-wider text-zinc-500"
-        style={{ fontFamily: "var(--font-mono)" }}
+        className="absolute right-2.5 top-2 z-10 flex items-center gap-2 rounded-md border px-1.5 py-1 text-[9.5px] uppercase tracking-wider text-zinc-500 backdrop-blur-md"
+        style={{
+          fontFamily: "var(--font-mono)",
+          background: "rgba(9,9,11,0.9)",
+          borderColor: `${p.color}18`,
+        }}
       >
         <span>{data.serviceCount} services</span>
         <span className="text-zinc-700">{"//"}</span>

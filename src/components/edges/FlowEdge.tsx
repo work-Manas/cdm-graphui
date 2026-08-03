@@ -1,6 +1,6 @@
 "use client";
 
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from "@xyflow/react";
+import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
 import { memo, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { STATUS_COLORS } from "@/lib/constants";
@@ -17,6 +17,8 @@ type FlowEdgeData = {
   status: "active" | "idle" | "degraded";
   throughput: { current: number; peak: number };
   label: string;
+  route?: { x: number; y: number }[];
+  labelsVisible?: boolean;
 };
 
 type FlowEdgeProps = Omit<EdgeProps, "data"> & { data?: FlowEdgeData };
@@ -24,14 +26,23 @@ type FlowEdgeProps = Omit<EdgeProps, "data"> & { data?: FlowEdgeData };
 function FlowEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, data }: FlowEdgeProps) {
   const [hovered, setHovered] = useState(false);
   const reduceMotion = useReducedMotion() ?? false;
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourcePosition,
-    targetPosition,
-  });
+  const route = data?.route;
+  const [edgePath, labelX, labelY] = route
+    ? [
+        `M ${route.map((point) => `${point.x},${point.y}`).join(" L ")}`,
+        route[Math.floor(route.length / 2)].x,
+        route[Math.floor(route.length / 2)].y,
+      ] as [string, number, number]
+    : getSmoothStepPath({
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        sourcePosition,
+        targetPosition,
+        borderRadius: 0,
+        offset: 24,
+      });
 
   const status = data?.status ?? "active";
   const color = STATUS_TO_COLOR[status] ?? STATUS_COLORS.active;
@@ -48,16 +59,9 @@ function FlowEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePosit
     : "none";
   const strokeDasharray = reduceMotion && status !== "idle" ? "0" : "6 6";
 
-  const onEnter = () => setHovered(true);
-  const onLeave = () => setHovered(false);
-
   return (
     <>
-      <g
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-        className="group"
-      >
+      <g className="group">
         <path
           d={edgePath}
           fill="none"
@@ -85,15 +89,20 @@ function FlowEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePosit
           stroke="transparent"
           strokeWidth={14}
           pointerEvents="stroke"
+          onPointerEnter={() => setHovered(true)}
+          onPointerLeave={() => setHovered(false)}
         />
       </g>
-      {(hovered || status === "degraded") && data?.label && (
+      {data?.label && (
         <EdgeLabelRenderer>
           <div
             style={{
               position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               pointerEvents: "none",
+              opacity: hovered || data?.labelsVisible ? 1 : 0,
+              transition: "opacity 180ms ease",
+              zIndex: 1000,
             }}
             className="nodrag nopan"
           >

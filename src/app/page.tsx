@@ -16,6 +16,7 @@ export default function Home() {
   const start = useLiveStore((s) => s.start);
   const archId = useLiveStore((s) => s.archId);
   const [hydrated, setHydrated] = useState(false);
+  const [labelsVisible, setLabelsVisible] = useState(false);
 
   useKeyboardShortcuts();
 
@@ -44,9 +45,13 @@ export default function Home() {
       <AppBar />
       <main className="relative flex flex-1 overflow-hidden">
         <div className="relative flex-1 overflow-hidden">
-          <ArchitectureView arch={arch} />
+           <ArchitectureView arch={arch} labelsVisible={labelsVisible} />
           <MetaPanel arch={arch} />
-          <LegendPanel arch={arch} />
+           <LegendPanel
+             arch={arch}
+             labelsVisible={labelsVisible}
+             onToggleLabels={() => setLabelsVisible((visible) => !visible)}
+           />
         </div>
         <DetailPanel />
       </main>
