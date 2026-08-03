@@ -1,7 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 
 export type ProviderId = "aws" | "azure" | "gcp" | "nvidia";
-
 export type ServiceKind =
   | "compute"
   | "container"

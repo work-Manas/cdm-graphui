@@ -4,7 +4,13 @@ import { PROVIDERS } from "@/lib/constants";
 import { ProviderLogo } from "@/components/icons/ProviderLogo";
 import type { Architecture, ProviderId } from "@/types/architecture";
 
-export function LegendPanel({ arch, labelsVisible, onToggleLabels, minimal, onToggleMinimal }: {
+export function LegendPanel({
+  arch,
+  labelsVisible,
+  onToggleLabels,
+  minimal,
+  onToggleMinimal,
+}: {
   arch: Architecture;
   labelsVisible: boolean;
   onToggleLabels: () => void;

@@ -46,7 +46,11 @@ export default function Home() {
       <AppBar />
       <main className="relative flex flex-1 overflow-hidden">
         <div className="relative flex-1 overflow-hidden">
-           <ArchitectureView arch={arch} labelsVisible={labelsVisible} minimal={minimal} />
+           <ArchitectureView
+             arch={arch}
+             labelsVisible={labelsVisible}
+             minimal={minimal}
+           />
           <MetaPanel arch={arch} />
            <LegendPanel
              arch={arch}

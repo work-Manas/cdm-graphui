@@ -10,9 +10,11 @@ import {
   type Edge,
   type Node,
   type NodeMouseHandler,
+  type Viewport,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { FlowEdge } from "@/components/edges/FlowEdge";
 import { ProviderGroupNode } from "@/components/nodes/ProviderGroupNode";
 import { RegionGroupNode } from "@/components/nodes/RegionGroupNode";
@@ -37,10 +39,12 @@ const DEFAULT_EDGE_OPTIONS = {
   type: "flow",
 };
 
-function InnerFlow({ arch, labelsVisible, minimal }: {
+function InnerFlow({ arch, labelsVisible, minimal, viewport, onViewportChange }: {
   arch: Architecture;
   labelsVisible: boolean;
   minimal: boolean;
+  viewport: Viewport | null;
+  onViewportChange: (viewport: Viewport) => void;
 }) {
   useLiveEngine();
   const running = useLiveStore((s) => s.running);
@@ -89,8 +93,10 @@ function InnerFlow({ arch, labelsVisible, minimal }: {
       nodesDraggable={false}
       nodesConnectable={false}
       edgesFocusable={false}
-      fitView
+      fitView={!viewport}
       fitViewOptions={{ padding: 0.2, maxZoom: 1.4 }}
+      defaultViewport={viewport ?? { x: 0, y: 0, zoom: 1 }}
+      onMoveEnd={(_, nextViewport) => onViewportChange(nextViewport)}
       minZoom={0.2}
       maxZoom={2}
       proOptions={{ hideAttribution: true }}
@@ -125,9 +131,29 @@ export function ArchitectureView({ arch, labelsVisible, minimal }: {
   labelsVisible: boolean;
   minimal: boolean;
 }) {
+  const reduceMotion = useReducedMotion();
+  const [viewport, setViewport] = useState<Viewport | null>(null);
+
   return (
-    <ReactFlowProvider>
-      <InnerFlow arch={arch} labelsVisible={labelsVisible} minimal={minimal} />
-    </ReactFlowProvider>
+    <AnimatePresence mode="popLayout" initial={false}>
+      <motion.div
+        key={minimal ? "minimal" : "detailed"}
+        className="absolute inset-0"
+        initial={reduceMotion ? false : { opacity: 0, filter: "blur(7px)" }}
+        animate={{ opacity: 1, filter: "blur(0px)" }}
+        exit={reduceMotion ? undefined : { opacity: 0, filter: "blur(7px)" }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <ReactFlowProvider>
+          <InnerFlow
+            arch={arch}
+            labelsVisible={labelsVisible}
+            minimal={minimal}
+            viewport={viewport}
+            onViewportChange={setViewport}
+          />
+        </ReactFlowProvider>
+      </motion.div>
+    </AnimatePresence>
   );
 }
