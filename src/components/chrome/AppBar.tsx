@@ -3,11 +3,12 @@
 import { useLiveStore } from "@/lib/store";
 import { PROVIDERS } from "@/lib/constants";
 import { fmtTick } from "@/lib/rng";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, RotateCcw } from "lucide-react";
 
 export function AppBar() {
   const running = useLiveStore((s) => s.running);
   const toggleRunning = useLiveStore((s) => s.toggleRunning);
+  const restart = useLiveStore((s) => s.restart);
   const tickElapsedMs = useLiveStore((s) => s.tickElapsedMs);
 
   return (
@@ -46,15 +47,25 @@ export function AppBar() {
           </span>
           <span className="ml-1 text-zinc-600">{fmtTick(tickElapsedMs)}</span>
         </div>
-        <button
-          onClick={toggleRunning}
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-zinc-900 transition-colors hover:bg-zinc-800 active:scale-[0.96]"
-          aria-label={running ? "Pause live engine" : "Resume live engine"}
-        >
-          {running
-            ? <Pause size={12} className="text-zinc-200" />
-            : <Play size={12} className="text-zinc-200" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={restart}
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-zinc-900 transition-colors hover:bg-zinc-800 active:scale-[0.96]"
+            aria-label="Restart simulation"
+            title="Restart simulation"
+          >
+            <RotateCcw size={12} className="text-zinc-200" />
+          </button>
+          <button
+            onClick={toggleRunning}
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-zinc-900 transition-colors hover:bg-zinc-800 active:scale-[0.96]"
+            aria-label={running ? "Pause live engine" : "Resume live engine"}
+          >
+            {running
+              ? <Pause size={12} className="text-zinc-200" />
+              : <Play size={12} className="text-zinc-200" />}
+          </button>
+        </div>
       </div>
     </header>
   );

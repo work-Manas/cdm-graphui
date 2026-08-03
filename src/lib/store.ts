@@ -31,6 +31,7 @@ type LiveStore = {
   setArch: (arch: Architecture) => void;
   start: () => void;
   pause: () => void;
+  restart: () => void;
   toggleRunning: () => void;
   selectNode: (id: string | null) => void;
   tick: () => void;
@@ -144,6 +145,13 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
 
   start: () => set({ running: true }),
   pause: () => set({ running: false }),
+  restart: () => {
+    const arch = get().arch;
+    if (arch) {
+      get().setArch(arch);
+      set({ running: true });
+    }
+  },
   toggleRunning: () => set((s) => ({ running: !s.running })),
   selectNode: (id) => set({ selectedNodeId: id }),
 
