@@ -249,7 +249,7 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
       const policy = simulation.policy;
       const phase = tickNumber % AUTOSCALING_CYCLE_TICKS;
       autoscalingWorkload = workloadAt(tickNumber);
-      const active = arch.nodes.filter((node) => simulation.dynamicSlotIds.includes(node.id));
+      const active = arch.nodes.filter((node) => simulation.dynamicSlotIds.includes(node.id) && !node.data.retiring);
       const cpu = Math.min(100, autoscalingWorkload / Math.max(active.length * 12, 1));
       const scheduled = policy.scheduled.find((action) => action.tick === phase);
       const predictive = policy.predictive.find((action) => action.tick === phase);
@@ -281,18 +281,40 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
           data: { ...node.data, config: { ...node.data.config, autoscaling: { min: policy.min, max: policy.max, current: desired } } },
         }));
         const baseNodes = arch.nodes.filter((node) => simulation.baseNodeIds.includes(node.id));
-        const nextNodes = [...baseNodes.slice(0, 2), ...dynamicNodes, ...baseNodes.slice(2)];
         const nextEdges = makeAutoscalingEdges(arch, dynamicNodes);
         const entering = dynamicNodes.filter((node) => !active.some((old) => old.id === node.id));
         const exiting = active.filter((node) => !dynamicNodes.some((next) => next.id === node.id));
+        const retiring = exiting.map((node) => ({ ...node, data: { ...node.data, retiring: true } }));
+        const nextNodes = [...baseNodes.slice(0, 2), ...dynamicNodes, ...retiring, ...baseNodes.slice(2)];
+        const exitingIds = new Set(exiting.map((node) => node.id));
+        const displayEdges = [...nextEdges, ...arch.edges.filter((edge) =>
+          (exitingIds.has(edge.source) || exitingIds.has(edge.target)) && !nextEdges.some((next) => next.id === edge.id),
+        )];
         useMorphStore.getState().beginMorph(entering.map((node) => node.data.morphKey), exiting.map((node) => node.data.morphKey));
-        window.setTimeout(() => useMorphStore.getState().finishMorph(), 700);
+        window.setTimeout(() => {
+          set((current) => {
+            const currentArch = current.arch;
+            if (!currentArch || currentArch.id !== arch?.id) return {};
+            const nodeStates = { ...current.nodeStates };
+            const edgeStates = { ...current.edgeStates };
+            for (const id of exitingIds) delete nodeStates[id];
+            for (const edge of displayEdges) {
+              if (exitingIds.has(edge.source) || exitingIds.has(edge.target)) delete edgeStates[edge.id];
+            }
+            return {
+              arch: { ...currentArch, nodes: currentArch.nodes.filter((node) => !exitingIds.has(node.id)), edges: currentArch.edges.filter((edge) => !exitingIds.has(edge.source) && !exitingIds.has(edge.target)) },
+              nodeStates,
+              edgeStates,
+              selectedNodeId: current.selectedNodeId && exitingIds.has(current.selectedNodeId) ? null : current.selectedNodeId,
+            };
+          });
+          useMorphStore.getState().finishMorph();
+        }, 500);
         seededNodeStates = { ...state.nodeStates };
         for (const node of entering) seededNodeStates[node.id] = seedNode(rng, node);
-        for (const node of exiting) delete seededNodeStates[node.id];
         seededEdgeStates = {};
-        for (const edge of nextEdges) seededEdgeStates[edge.id] = state.edgeStates[edge.id] ?? seedEdge(rng, edge);
-        arch = { ...arch, nodes: nextNodes, edges: nextEdges };
+        for (const edge of displayEdges) seededEdgeStates[edge.id] = state.edgeStates[edge.id] ?? seedEdge(rng, edge);
+        arch = { ...arch, nodes: nextNodes, edges: displayEdges };
         autoscalingActivity = `${reason}; ${active.length} -> ${desired} @${tickNumber}`;
       } else if (reason) {
         autoscalingActivity = `${reason}; capacity remains ${active.length} @${tickNumber}`;
@@ -329,7 +351,9 @@ export const useLiveStore = create<LiveStore>((set, get) => ({
     }
 
     if (arch.simulation) {
-      const activeIds = arch.simulation.dynamicSlotIds.filter((id) => nodeStates[id]);
+      const activeIds = arch.nodes
+        .filter((node) => arch!.simulation!.dynamicSlotIds.includes(node.id) && !node.data.retiring)
+        .map((node) => node.id);
       const cpu = Math.min(100, autoscalingWorkload / Math.max(activeIds.length * 12, 1));
       const requests = autoscalingWorkload / Math.max(activeIds.length, 1);
       for (const id of activeIds) {

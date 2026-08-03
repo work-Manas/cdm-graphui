@@ -82,13 +82,15 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
   const variants = {
     initial: (isEntering: boolean) => ({
       opacity: isEntering ? 0 : 1,
-      scale: isEntering ? 0.92 : 1,
+      scale: isEntering ? 0.82 : 1,
+      filter: isEntering ? "blur(3px)" : "blur(0px)",
     }),
     animate: {
       opacity: exiting ? 0 : 1,
-      scale: exiting ? 0.85 : 1,
+      scale: exiting ? 0.9 : 1,
+      filter: exiting ? "blur(4px)" : "blur(0px)",
     },
-    exit: { opacity: 0, scale: 0.85 },
+    exit: { opacity: 0, scale: 0.9, filter: "blur(4px)" },
   };
 
   const p = PROVIDERS[data.provider];
@@ -128,7 +130,7 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
           animate="animate"
           exit="exit"
           variants={variants}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           onClick={onClick}
           className="group relative flex h-[72px] w-[108px] select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border px-1 text-center backdrop-blur-sm transition-colors"
           style={{
@@ -182,7 +184,7 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
         animate="animate"
         exit="exit"
         variants={variants}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         onClick={onClick}
         className="group relative cursor-pointer select-none"
         style={{ width: 192, pointerEvents: exiting ? "none" : "auto" }}

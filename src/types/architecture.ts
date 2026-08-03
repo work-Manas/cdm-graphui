@@ -57,6 +57,7 @@ export type ServiceNodeData = {
   };
   metrics: MetricSpec[];
   minimal?: boolean;
+  retiring?: boolean;
 };
 
 export type AutoscalingSchedule = {

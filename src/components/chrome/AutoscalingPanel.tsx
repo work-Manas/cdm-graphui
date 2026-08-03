@@ -15,7 +15,7 @@ export function AutoscalingPanel() {
   if (!simulation) return null;
 
   const policy = simulation.policy;
-  const capacity = arch.nodes.filter((node) => simulation.dynamicSlotIds.includes(node.id)).length;
+  const capacity = arch.nodes.filter((node) => simulation.dynamicSlotIds.includes(node.id) && !node.data.retiring).length;
   const cpu = Math.min(100, workload / Math.max(capacity * 12, 1));
   const phase = tick % 40;
 
