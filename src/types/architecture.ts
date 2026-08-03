@@ -76,6 +76,7 @@ export type ServiceNodeData = {
   costSoFarToday: number;
   history: Record<MetricKey, number[]>;
   events: { ts: string; type: string; message: string }[];
+  minimal?: boolean;
 };
 
 export type EdgeStatus = "active" | "idle" | "degraded";

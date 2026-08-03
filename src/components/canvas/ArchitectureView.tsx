@@ -37,14 +37,18 @@ const DEFAULT_EDGE_OPTIONS = {
   type: "flow",
 };
 
-function InnerFlow({ arch, labelsVisible }: { arch: Architecture; labelsVisible: boolean }) {
+function InnerFlow({ arch, labelsVisible, minimal }: {
+  arch: Architecture;
+  labelsVisible: boolean;
+  minimal: boolean;
+}) {
   useLiveEngine();
   const running = useLiveStore((s) => s.running);
   const tickNumber = useLiveStore((s) => s.tickNumber);
   const selectNode = useLiveStore((s) => s.selectNode);
   const selectedNodeId = useLiveStore((s) => s.selectedNodeId);
 
-  const layouted = useMemo(() => computeLayout(arch), [arch]);
+  const layouted = useMemo(() => computeLayout(arch, minimal), [arch, minimal]);
 
   // Force re-render of node components on each tick by lightly patching data ref
   // (the inner ServiceNode subscribes to liveStore itself, but this also keeps
@@ -73,6 +77,7 @@ function InnerFlow({ arch, labelsVisible }: { arch: Architecture; labelsVisible:
 
   return (
     <ReactFlow
+      key={minimal ? "minimal" : "detailed"}
       nodes={nodesLive}
       edges={edgesLive}
       nodeTypes={NODE_TYPES}
@@ -115,10 +120,14 @@ function InnerFlow({ arch, labelsVisible }: { arch: Architecture; labelsVisible:
   );
 }
 
-export function ArchitectureView({ arch, labelsVisible }: { arch: Architecture; labelsVisible: boolean }) {
+export function ArchitectureView({ arch, labelsVisible, minimal }: {
+  arch: Architecture;
+  labelsVisible: boolean;
+  minimal: boolean;
+}) {
   return (
     <ReactFlowProvider>
-      <InnerFlow arch={arch} labelsVisible={labelsVisible} />
+      <InnerFlow arch={arch} labelsVisible={labelsVisible} minimal={minimal} />
     </ReactFlowProvider>
   );
 }

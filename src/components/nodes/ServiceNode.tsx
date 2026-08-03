@@ -107,6 +107,62 @@ function ServiceNodeComponent({ id, data, selected }: Props) {
     selectNode(id);
   };
 
+  if (data.minimal) {
+    return (
+      <>
+        <Handle
+          type="target"
+          position={Position.Left}
+          style={{ width: 6, height: 6, border: "none", background: p.color, opacity: 0.8 }}
+        />
+        <Handle
+          type="source"
+          position={Position.Right}
+          style={{ width: 6, height: 6, border: "none", background: p.color, opacity: 0.8 }}
+        />
+        <motion.button
+          type="button"
+          key={morphAt ? `${data.morphKey}-${morphAt}-minimal` : `${data.morphKey}-minimal`}
+          custom={entering}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          variants={variants}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          onClick={onClick}
+          className="group relative flex h-[72px] w-[108px] select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border px-1 text-center backdrop-blur-sm transition-colors"
+          style={{
+            color: p.color,
+            borderColor: selected ? p.color : "rgba(255,255,255,0.1)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
+            boxShadow: selected
+              ? `0 0 0 2px ${p.color}22, 0 5px 14px rgba(0,0,0,0.25)`
+              : "0 4px 12px rgba(0,0,0,0.24)",
+            pointerEvents: exiting ? "none" : "auto",
+          }}
+          aria-label={data.serviceName}
+        >
+          <span
+            className="relative flex h-8 w-8 items-center justify-center rounded-lg"
+            style={{
+              color: p.color,
+              background: `radial-gradient(circle, ${p.color}28 0%, ${p.color}0a 62%, transparent 70%)`,
+              filter: selected ? `drop-shadow(0 0 7px ${p.color}66)` : "none",
+            }}
+          >
+            <Glyph size={20} weight="duotone" />
+          </span>
+          <span
+            className="line-clamp-2 max-w-[102px] text-[9.5px] font-medium leading-[1.12] tracking-[0.01em] text-zinc-300"
+            style={{ textShadow: "0 1px 5px rgba(0,0,0,0.9)" }}
+          >
+            {data.serviceName}
+          </span>
+        </motion.button>
+      </>
+    );
+  }
+
   return (
     <>
       <Handle

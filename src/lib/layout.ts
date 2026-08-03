@@ -8,8 +8,8 @@ import type {
   ServiceNode,
 } from "@/types/architecture";
 
-const NODE_WIDTH = 192;
-const NODE_HEIGHT = 132;
+const DETAIL_NODE = { width: 192, height: 132 };
+const MINIMAL_NODE = { width: 108, height: 72 };
 
 const GROUP_PAD_X = 32;
 const GROUP_PAD_TOP = 44;
@@ -47,7 +47,9 @@ type RoutePoint = { x: number; y: number };
 
 export function computeLayout(
   arch: Architecture,
+  minimal = false,
 ): { nodes: Node[]; edges: Edge[] } {
+  const { width: nodeWidth, height: nodeHeight } = minimal ? MINIMAL_NODE : DETAIL_NODE;
   // Group service nodes by provider + region
   const providersMap = new Map<ProviderId, ProviderGroup>();
   for (const svc of arch.nodes) {
@@ -92,8 +94,8 @@ export function computeLayout(
       const g = new Dagre.graphlib.Graph();
       g.setGraph({
         rankdir: "LR",
-        nodesep: 48,
-        ranksep: 96,
+        nodesep: minimal ? 36 : 48,
+        ranksep: minimal ? 76 : 96,
         marginx: 0,
         marginy: 0,
       });
@@ -101,7 +103,7 @@ export function computeLayout(
       const svcIds = rg.services.map((s) => s.id);
       const idToSvc = new Map(rg.services.map((s) => [s.id, s] as const));
       for (const id of svcIds) {
-        g.setNode(id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+        g.setNode(id, { width: nodeWidth, height: nodeHeight });
       }
       for (const e of arch.edges) {
         if (svcIds.includes(e.source) && svcIds.includes(e.target)) {
@@ -112,12 +114,12 @@ export function computeLayout(
 
       const coords = svcIds.map((id) => {
         const n = g.node(id);
-        return { id, x: n.x - NODE_WIDTH / 2, y: n.y - NODE_HEIGHT / 2 };
+        return { id, x: n.x - nodeWidth / 2, y: n.y - nodeHeight / 2 };
       });
       nodesPerRegion.set(rg.id, coords);
 
-      const maxX = Math.max(...coords.map((c) => c.x + NODE_WIDTH));
-      const maxY = Math.max(...coords.map((c) => c.y + NODE_HEIGHT));
+      const maxX = Math.max(...coords.map((c) => c.x + nodeWidth));
+      const maxY = Math.max(...coords.map((c) => c.y + nodeHeight));
       rg.layoutWidth = maxX;
       rg.width = maxX + REGION_PAD_X * 2;
       rg.height = maxY + REGION_PAD_TOP + REGION_PAD_BOTTOM;
@@ -209,13 +211,13 @@ export function computeLayout(
             x: REGION_PAD_X + Math.max(0, (rg.width - REGION_PAD_X * 2 - rg.layoutWidth) / 2) + c.x,
             y: REGION_PAD_TOP + c.y,
           },
-          data: svc.data,
+          data: { ...svc.data, minimal },
         });
         serviceRects.set(svc.id, {
           x: pg.offsetX + GROUP_PAD_X + REGION_PAD_X + Math.max(0, (rg.width - REGION_PAD_X * 2 - rg.layoutWidth) / 2) + c.x,
           y: GROUP_PAD_TOP + rg.offsetY + REGION_PAD_TOP + c.y,
-          width: NODE_WIDTH,
-          height: NODE_HEIGHT,
+          width: nodeWidth,
+          height: nodeHeight,
         });
       }
     }
